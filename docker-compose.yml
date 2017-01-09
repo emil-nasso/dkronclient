@@ -1,0 +1,30 @@
+
+---
+version: '2'
+services:
+  consul:
+    image: consul
+    ports:
+      - "8500:8500"
+    hostname: node1
+
+  dkron-foo:
+    image: dkron/dkron
+    volumes:
+      - "./dkron.json:/opt/local/dkron/config/dkron.json"
+    depends_on:
+      - consul
+    ports:
+      - "8080"
+    command: agent -server -backend=consul -backend-machine=consul:8500 -join=dkron-foo:8946 -tag role=foo -log-level=debug
+
+  dkron-bar:
+    image: dkron/dkron
+    volumes:
+      - "./dkron.json:/opt/local/dkron/config/dkron.json"
+    depends_on:
+      - consul
+      - dkron-foo
+    ports:
+      - "8080"
+    command: agent -server -backend=consul -backend-machine=consul:8500 -join=dkron-foo:8946 -tag role=bar -log-level=debug
